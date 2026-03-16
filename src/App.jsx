@@ -3,6 +3,7 @@ import {
   AreaChart, Area, XAxis, YAxis,
   Tooltip, ResponsiveContainer, CartesianGrid,
 } from "recharts";
+import Advisor from "./Advisor.jsx";
 
 const G      = "#C8A94B";
 const BG     = "#0B0C0E";
@@ -28,6 +29,10 @@ const GLOBAL_CSS = `
   .ghost { background: transparent; color: #6B6E78; border: 1px solid rgba(255,255,255,0.07); padding: 10px 20px; border-radius: 8px; font-size: 13px; cursor: pointer; font-family: 'DM Sans', sans-serif; transition: border-color 0.2s, color 0.2s; }
   .ghost:hover { border-color: rgba(255,255,255,0.2); color: #E2E3E8; }
   .serif { font-family: 'DM Serif Display', serif; }
+  textarea { outline: none; }
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 2px; }
 `;
 
 const QUESTIONS = [
@@ -53,11 +58,9 @@ function CTip({ active, payload, label }) {
   return (
     <div style={{ background: "#1A1C21", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 8, padding: "8px 14px", fontSize: 13 }}>
       <div style={{ color: "#6B6E78", marginBottom: 4 }}>{label}</div>
-      {payload.map((p, i) => (
-        <div key={i} style={{ color: p.color || "#C8A94B", fontFamily: "monospace", fontWeight: 500 }}>
-          {typeof p.value === "number" ? fmt(p.value) : p.value}
-        </div>
-      ))}
+      {payload.map(function(p, i) {
+        return <div key={i} style={{ color: p.color || "#C8A94B", fontFamily: "monospace", fontWeight: 500 }}>{typeof p.value === "number" ? fmt(p.value) : p.value}</div>;
+      })}
     </div>
   );
 }
@@ -86,11 +89,11 @@ function Intro({ onStart }) {
           Make better decisions<br /><em>with your money</em>
         </h1>
         <p style={{ color: MUTED, fontSize: 16, lineHeight: 1.8, maxWidth: 400, margin: "0 auto 48px" }}>
-          A 2-minute questionnaire. Instant clarity on your financial health, 10-year projections, and what to actually do next.
+          A 2-minute questionnaire. Instant clarity on your financial health, 10-year projections, and an AI advisor that knows your numbers.
         </p>
         <button className="btn" onClick={onStart} style={{ fontSize: 16, padding: "16px 52px" }}>Get started →</button>
-        <div style={{ marginTop: 48, display: "flex", gap: 32, justifyContent: "center" }}>
-          {["Dashboard", "3 Calculators", "Personalised advice"].map(function(f){ return <div key={f} style={{ fontSize: 13, color: MUTED }}>{f}</div>; })}
+        <div style={{ marginTop: 48, display: "flex", gap: 32, justifyContent: "center", flexWrap: "wrap" }}>
+          {["Dashboard", "3 Calculators", "AI Advisor"].map(function(f){ return <div key={f} style={{ fontSize: 13, color: MUTED }}>{f}</div>; })}
         </div>
       </div>
     </div>
@@ -98,10 +101,11 @@ function Intro({ onStart }) {
 }
 
 function Questionnaire({ answers, setAnswers, onDone, onBack }) {
-  const [qStep, setQStep] = useState(0);
-  const q      = QUESTIONS[qStep];
-  const val    = answers[q.id];
-  const isLast = qStep === QUESTIONS.length - 1;
+  var stepState = useState(0);
+  var qStep = stepState[0]; var setQStep = stepState[1];
+  var q      = QUESTIONS[qStep];
+  var val    = answers[q.id];
+  var isLast = qStep === QUESTIONS.length - 1;
   function next() { if (isLast) { onDone(); } else { setQStep(function(s){ return s + 1; }); } }
   return (
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "100vh", padding: "40px 20px" }}>
@@ -316,14 +320,9 @@ function Calculators() {
             <div style={lblStyle}>Compound growth curve</div>
             <ResponsiveContainer width="100%" height={300}>
               <AreaChart data={ciData}>
-                <defs>
-                  <linearGradient id="gCI" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%"  stopColor={G} stopOpacity={0.28} />
-                    <stop offset="95%" stopColor={G} stopOpacity={0} />
-                  </linearGradient>
-                </defs>
+                <defs><linearGradient id="gCI" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor={G} stopOpacity={0.28} /><stop offset="95%" stopColor={G} stopOpacity={0} /></linearGradient></defs>
                 <CartesianGrid stroke="rgba(255,255,255,0.04)" vertical={false} />
-                <XAxis dataKey="yr"  tick={{ fill: MUTED, fontSize: 11 }} axisLine={false} tickLine={false} interval="preserveStartEnd" />
+                <XAxis dataKey="yr" tick={{ fill: MUTED, fontSize: 11 }} axisLine={false} tickLine={false} interval="preserveStartEnd" />
                 <YAxis tickFormatter={fmt} tick={{ fill: MUTED, fontSize: 11 }} axisLine={false} tickLine={false} width={72} />
                 <Tooltip content={CTip} />
                 <Area type="monotone" dataKey="flat"  stroke={BORDER} strokeWidth={1} fill="none" strokeDasharray="4 3" name="No growth" />
@@ -352,14 +351,9 @@ function Calculators() {
             <div style={lblStyle}>Retirement fund growth</div>
             <ResponsiveContainer width="100%" height={300}>
               <AreaChart data={rtData.chart}>
-                <defs>
-                  <linearGradient id="gRT" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%"  stopColor={GREEN} stopOpacity={0.28} />
-                    <stop offset="95%" stopColor={GREEN} stopOpacity={0} />
-                  </linearGradient>
-                </defs>
+                <defs><linearGradient id="gRT" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor={GREEN} stopOpacity={0.28} /><stop offset="95%" stopColor={GREEN} stopOpacity={0} /></linearGradient></defs>
                 <CartesianGrid stroke="rgba(255,255,255,0.04)" vertical={false} />
-                <XAxis dataKey="yr"  tick={{ fill: MUTED, fontSize: 11 }} axisLine={false} tickLine={false} />
+                <XAxis dataKey="yr" tick={{ fill: MUTED, fontSize: 11 }} axisLine={false} tickLine={false} />
                 <YAxis tickFormatter={fmt} tick={{ fill: MUTED, fontSize: 11 }} axisLine={false} tickLine={false} width={72} />
                 <Tooltip content={CTip} />
                 <Area type="monotone" dataKey="val" stroke={GREEN} strokeWidth={2} fill="url(#gRT)" name="Fund value" />
@@ -392,14 +386,9 @@ function Calculators() {
             <div style={lblStyle}>Remaining balance over time</div>
             <ResponsiveContainer width="100%" height={300}>
               <AreaChart data={lnData.chart}>
-                <defs>
-                  <linearGradient id="gLN" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%"  stopColor={RED} stopOpacity={0.22} />
-                    <stop offset="95%" stopColor={RED} stopOpacity={0} />
-                  </linearGradient>
-                </defs>
+                <defs><linearGradient id="gLN" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor={RED} stopOpacity={0.22} /><stop offset="95%" stopColor={RED} stopOpacity={0} /></linearGradient></defs>
                 <CartesianGrid stroke="rgba(255,255,255,0.04)" vertical={false} />
-                <XAxis dataKey="mo"  tick={{ fill: MUTED, fontSize: 11 }} axisLine={false} tickLine={false} />
+                <XAxis dataKey="mo" tick={{ fill: MUTED, fontSize: 11 }} axisLine={false} tickLine={false} />
                 <YAxis tickFormatter={fmt} tick={{ fill: MUTED, fontSize: 11 }} axisLine={false} tickLine={false} width={72} />
                 <Tooltip content={CTip} />
                 <Area type="monotone" dataKey="balance" stroke={RED} strokeWidth={2} fill="url(#gLN)" name="Balance" />
@@ -433,14 +422,18 @@ export default function App() {
         <>
           <nav style={{ borderBottom: "1px solid rgba(255,255,255,0.07)", padding: "0 28px", display: "flex", alignItems: "center", position: "sticky", top: 0, background: BG, zIndex: 10 }}>
             <div style={{ fontSize: 13, fontWeight: 500, color: G, padding: "20px 0", letterSpacing: "0.08em", marginRight: 32 }}>RF</div>
-            {[["dashboard","Dashboard"],["calculators","Calculators"]].map(function(item){ return (
-              <button key={item[0]} onClick={function(){ setTab(item[0]); }} style={{ background: "none", border: "none", padding: "20px 18px", color: tab === item[0] ? TEXT : MUTED, fontSize: 14, cursor: "pointer", fontFamily: "'DM Sans',sans-serif", borderBottom: tab === item[0] ? "2px solid " + G : "2px solid transparent", transition: "color 0.2s", marginBottom: -1 }}>{item[1]}</button>
+            {[["dashboard","Dashboard"],["calculators","Calculators"],["advisor","AI Advisor"]].map(function(item){ return (
+              <button key={item[0]} onClick={function(){ setTab(item[0]); }} style={{ background: "none", border: "none", padding: "20px 18px", color: tab === item[0] ? TEXT : MUTED, fontSize: 14, cursor: "pointer", fontFamily: "'DM Sans',sans-serif", borderBottom: tab === item[0] ? "2px solid " + G : "2px solid transparent", transition: "color 0.2s", marginBottom: -1 }}>
+                {item[1]}
+                {item[0] === "advisor" && <span style={{ marginLeft: 6, fontSize: 10, background: G + "20", color: G, border: "1px solid " + G + "40", borderRadius: 4, padding: "2px 6px", verticalAlign: "middle" }}>AI</span>}
+              </button>
             ); })}
             <button className="ghost" onClick={function(){ setScreen("questionnaire"); }} style={{ marginLeft: "auto", fontSize: 12, padding: "8px 16px" }}>Edit answers</button>
           </nav>
           <main style={{ maxWidth: 980, margin: "0 auto", padding: "44px 28px 80px" }}>
             {tab === "dashboard"   && <Dashboard    answers={answers} />}
             {tab === "calculators" && <Calculators />}
+            {tab === "advisor"     && <Advisor      answers={answers} />}
           </main>
         </>
       )}
